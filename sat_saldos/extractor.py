@@ -64,8 +64,8 @@ def _leer_bytes(ruta: Path) -> bytes:
         except OSError:
             time.sleep(0.5)
             continue
-        # PDF íntegro: empieza en '%PDF' y trae '%%EOF' cerca del final.
-        if data[:4] == b"%PDF" and b"%%EOF" in data[-2048:]:
+        # PDF íntegro: firma '%PDF' + marcador de cierre '%%EOF' en la cola amplia.
+        if _pdf_completo(data):
             return data
         ultimo = data or ultimo
         time.sleep(0.5)
@@ -77,8 +77,25 @@ def pdf_bytes(ruta: Path) -> bytes:
     return _leer_bytes(ruta)
 
 
+def _es_pdf(data: bytes) -> bool:
+    """¿Los bytes son un PDF? (firma '%PDF' en la cabecera).
+
+    Algunos PDF traen bytes previos a la firma, así que se busca en los primeros
+    1 KB, no solo en el offset 0.
+    """
+    return bool(data) and data[:1024].find(b"%PDF") >= 0
+
+
 def _pdf_completo(data: bytes) -> bool:
-    return data[:4] == b"%PDF" and b"%%EOF" in data[-4096:]
+    """¿El PDF llegó completo? (firma '%PDF' + marcador de cierre '%%EOF').
+
+    Se usa para la ESPERA de OneDrive (reintentar hasta que baje entero), NO como
+    filtro para descartar la extracción: un PDF válido puede traer datos de firma
+    o de formulario DESPUÉS del último '%%EOF', dejándolo fuera de una ventana de
+    cola estrecha. Por eso se busca '%%EOF' en toda la cola de 64 KB (antes eran
+    4 KB, que descartaba acuses del SAT legítimos → 'no legible' → 0 datos).
+    """
+    return _es_pdf(data) and b"%%EOF" in data[-65536:]
 
 
 def _pdftotext_bin() -> str | None:
@@ -158,9 +175,12 @@ def pdf_a_texto(ruta: Path) -> str:
     texto devuelve cadena vacía (el llamador decide cómo reportarlo).
     """
     data = _leer_bytes(ruta)
-    # Si el PDF no llegó completo (OneDrive a medio bajar), NO lo leas a medias:
-    # devolver "" hace que el pipeline lo marque 'no legible' en vez de clasificarlo mal.
-    if not _pdf_completo(data):
+    # Solo se descarta lo que NO es un PDF (o llegó vacío). El gate de 'completo'
+    # (%%EOF en la cola) NO se usa aquí para abortar: dejaba fuera acuses del SAT
+    # válidos cuyo '%%EOF' no cae en los últimos KB → 'no legible' → 0 datos. Si
+    # el archivo está realmente truncado, la extracción saldrá vacía y el llamador
+    # lo marcará 'no legible' de todos modos; _leer_bytes ya esperó a OneDrive.
+    if not _es_pdf(data):
         return ""
     txt = _pdftotext(data, '-layout')
     # Respaldo pdfplumber (si no hay pdftotext): x_tolerance evita que pegue las
@@ -184,7 +204,7 @@ def pdf_a_texto_raw(ruta: Path) -> str:
     'línea de etiquetas' + 'línea de datos', mucho más fácil de parsear.
     """
     data = _leer_bytes(ruta)
-    if not _pdf_completo(data):
+    if not _es_pdf(data):
         return ""
     return unicodedata.normalize('NFKC', _pdftotext(data))  # sin -layout
 
