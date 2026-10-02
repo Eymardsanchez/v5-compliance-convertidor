@@ -1,0 +1,101 @@
+('D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\build\\ConvertidorBancos_v5.1\\ConvertidorBancos.exe',
+ False,
+ False,
+ True,
+ ['D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\app_icon.ico'],
+ versioninfo.VSVersionInfo(ffi=versioninfo.FixedFileInfo(filevers=(5, 1, 0, 0), prodvers=(5, 1, 0, 0), mask=0x3f, flags=0x0, OS=0x40004, fileType=1, subtype=0x0, date=(0, 0)), kids=[versioninfo.StringFileInfo([versioninfo.StringTable('0c0a04b0', [versioninfo.StringStruct('CompanyName', 'ERSL Consultores'), versioninfo.StringStruct('FileDescription', 'ConvertidorBancos - Conciliacion CFDI, Descarga SAT y Convertidor PDF a Excel'), versioninfo.StringStruct('FileVersion', '5.1.0.0'), versioninfo.StringStruct('InternalName', 'ConvertidorBancos'), versioninfo.StringStruct('LegalCopyright', 'Copyright (c) 2026 ERSL Consultores'), versioninfo.StringStruct('OriginalFilename', 'ConvertidorBancos.exe'), versioninfo.StringStruct('ProductName', 'ConvertidorBancos'), versioninfo.StringStruct('ProductVersion', '5.1.0.0')])]), versioninfo.VarFileInfo([versioninfo.VarStruct('Translation', [3082, 1200])])]),
+ False,
+ False,
+ b'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<!-- Manifest de'
+ b' ConvertidorBancos.\n     - dpiAwareness Per-Monitor-V2: el .exe queda DP'
+ b'I-aware desde antes de\n       arrancar (fija la resolucion real y evita '
+ b'el escalado borroso, sin\n       depender de que ui_theme.enable_dpi() ll'
+ b'egue a tiempo).\n     - requestedExecutionLevel asInvoker: la app escribe'
+ b' en %APPDATA%, NO\n       necesita admin. Pedir admin aqui dispararia UAC'
+ b' y "reputacion" negativa.\n     - supportedOS: declara compatibilidad Win'
+ b'8.1/10/11 (mejora heuristica). -->\n<assembly xmlns="urn:schemas-microsof'
+ b't-com:asm.v1" manifestVersion="1.0">\n  <assemblyIdentity type="win32" na'
+ b'me="ERSLConsultores.ConvertidorBancos" version="5.1.0.0" processorArchitectu'
+ b're="*"/>\n  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">\n    <sec'
+ b'urity>\n      <requestedPrivileges>\n        <requestedExecutionLevel leve'
+ b'l="asInvoker" uiAccess="false"/>\n      </requestedPrivileges>\n    </secu'
+ b'rity>\n  </trustInfo>\n  <compatibility xmlns="urn:schemas-microsoft-com:c'
+ b'ompatibility.v1">\n    <application>\n      <!-- Windows 10 / 11 -->\n     '
+ b' <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}"/>\n      <!-- W'
+ b'indows 8.1 -->\n      <supportedOS Id="{1f676c76-80e1-4239-95bb-83d0f6d0d'
+ b'a78}"/>\n    </application>\n  </compatibility>\n  <asmv3:application xmlns'
+ b':asmv3="urn:schemas-microsoft-com:asm.v3">\n    <asmv3:windowsSettings>\n '
+ b'     <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSetti'
+ b'ngs">PerMonitorV2, PerMonitor</dpiAwareness>\n      <dpiAware xmlns="http'
+ b'://schemas.microsoft.com/SMI/2005/WindowsSettings">true/pm</dpiAware>\n  '
+ b'    <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSetti'
+ b'ngs">true</longPathAware>\n    </asmv3:windowsSettings>\n  </asmv3:applica'
+ b'tion>\n  <dependency>\n    <dependentAssembly>\n      <assemblyIdentity typ'
+ b'e="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" process'
+ b'orArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*"/>\n    '
+ b'</dependentAssembly>\n  </dependency>\n</assembly>',
+ True,
+ False,
+ None,
+ None,
+ None,
+ 'D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\build\\ConvertidorBancos_v5.1\\ConvertidorBancos.pkg',
+ [('pyi-contents-directory _internal', '', 'OPTION'),
+  ('PYZ-00.pyz',
+   'D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\build\\ConvertidorBancos_v5.1\\PYZ-00.pyz',
+   'PYZ'),
+  ('struct',
+   'D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\build\\ConvertidorBancos_v5.1\\localpycs\\struct.pyc',
+   'PYMODULE'),
+  ('pyimod01_archive',
+   'D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\build\\ConvertidorBancos_v5.1\\localpycs\\pyimod01_archive.pyc',
+   'PYMODULE'),
+  ('pyimod02_importers',
+   'D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\build\\ConvertidorBancos_v5.1\\localpycs\\pyimod02_importers.pyc',
+   'PYMODULE'),
+  ('pyimod03_ctypes',
+   'D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\build\\ConvertidorBancos_v5.1\\localpycs\\pyimod03_ctypes.pyc',
+   'PYMODULE'),
+  ('pyimod04_pywin32',
+   'D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\build\\ConvertidorBancos_v5.1\\localpycs\\pyimod04_pywin32.pyc',
+   'PYMODULE'),
+  ('pyiboot01_bootstrap',
+   'C:\\Program '
+   'Files\\Python312\\Lib\\site-packages\\PyInstaller\\loader\\pyiboot01_bootstrap.py',
+   'PYSOURCE'),
+  ('pyi_rth_inspect',
+   'C:\\Program '
+   'Files\\Python312\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_inspect.py',
+   'PYSOURCE'),
+  ('pyi_rth_pkgutil',
+   'C:\\Program '
+   'Files\\Python312\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_pkgutil.py',
+   'PYSOURCE'),
+  ('pyi_rth_multiprocessing',
+   'C:\\Program '
+   'Files\\Python312\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_multiprocessing.py',
+   'PYSOURCE'),
+  ('pyi_rth_setuptools',
+   'C:\\Program '
+   'Files\\Python312\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth_setuptools.py',
+   'PYSOURCE'),
+  ('pyi_rth_cryptography_openssl',
+   'C:\\Program '
+   'Files\\Python312\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks\\pyi_rth_cryptography_openssl.py',
+   'PYSOURCE'),
+  ('pyi_rth__tkinter',
+   'C:\\Program '
+   'Files\\Python312\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks\\pyi_rth__tkinter.py',
+   'PYSOURCE'),
+  ('ConvertidorSantander',
+   'D:\\OneDrive\\Claude\\proyectos-code-backup\\2026\\versiones\\codigo\\v5-compliance-convertidor\\ConvertidorSantander.py',
+   'PYSOURCE')],
+ [],
+ False,
+ False,
+ 1788995468,
+ [('runw.exe',
+   'C:\\Program '
+   'Files\\Python312\\Lib\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
+   'EXECUTABLE')],
+ 'C:\\Program Files\\Python312\\python312.dll')

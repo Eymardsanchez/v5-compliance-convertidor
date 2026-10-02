@@ -1,0 +1,10 @@
+{% macro complements(parent, c, level="h4") %}
+{% if c %}
+	{% for k, c in iterate_complements(c) %}
+		<{{ level }}>{{ k | trans }}</{{ level }}>
+		{% include k + '.html' %}
+		{% if not loop.last %}<div><br></div>{% endif %}
+	{% endfor %}
+{% endif %}
+{% endmacro %}
+{% include k + '.html' %}

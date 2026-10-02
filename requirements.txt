@@ -1,0 +1,6 @@
+pdfplumber>=0.11
+openpyxl>=3.1
+Pillow>=10.0
+satcfdi>=26.7.2
+playwright>=1.60
+anthropic>=0.40

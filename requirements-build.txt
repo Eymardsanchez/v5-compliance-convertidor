@@ -1,0 +1,12 @@
+# Dependencias SOLO de build (maquina de desarrollo) — NO van en el .exe.
+# El cliente no necesita Excel COM ni compilar VBA; el reporte solo INSERTA el
+# VBA ya compilado (keep_vba) desde plantilla_papel_trabajo.xlsm empaquetada.
+#
+#   pip install -r requirements-build.txt
+#
+# Uso:
+#   python construir_plantilla.py     # genera plantilla_papel_trabajo.xlsm
+#   (luego firmar el VBA una vez: Alt+F11 > Tools > Digital Signature)
+
+pywin32>=306        # win32com — automatiza Excel para inyectar el VBA
+pyinstaller>=6.0    # empaquetado del .exe
