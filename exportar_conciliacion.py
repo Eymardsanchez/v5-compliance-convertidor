@@ -462,12 +462,8 @@ def _hoja_banco(wb, nombre: str,
     filas.sort(key=lambda f: getattr(f[0], "orden", 0))
     n_datos = len(filas)
     n_conc  = sum(1 for _, c, _, _ in filas if c)
-    pct_tot = round(n_conc / n_datos * 100, 1) if n_datos else 0.0
 
-    # Título + cifra principal arriba: el dato que se busca primero no debe
-    # exigir bajar hasta el pie de la hoja. Va como FÓRMULA para que siga al día
-    # en cuanto el usuario concilie a mano.
-    # Sin porcentaje de conciliación (a solicitud): solo conteos.
+    # Título + cifra principal arriba: solo conteos, sin porcentaje.
     _sub = (f'=COUNTIF($Q$4:$Q${n_datos + 3},"<>")&" de {n_datos} movimientos conciliados'
             f'   ·   "&({n_datos}-COUNTIF($Q$4:$Q${n_datos + 3},"<>"))&" sin CFDI"')
     _titulo_txt = f"Conciliación — {nombre}"
@@ -575,7 +571,7 @@ def _hoja_banco(wb, nombre: str,
     _R_TM  = f"$Q${_f}:$Q${_u}"   # TIPO MATCH (col Q tras insertar ID en A)
     _R_MES = f"$S${_f}:$S${_u}"   # MES aux (col S tras el corrimiento)
 
-    # ── Porcentaje de conciliación por MES (de este estado de cuenta) ─────────
+    # ── Conteo de conciliación por MES (de este estado de cuenta) ──────────────
     _MESES_NOM = {1: "Enero", 2: "Febrero", 3: "Marzo", 4: "Abril",
                   5: "Mayo", 6: "Junio", 7: "Julio", 8: "Agosto",
                   9: "Septiembre", 10: "Octubre", 11: "Noviembre",
@@ -593,48 +589,33 @@ def _hoja_banco(wb, nombre: str,
     pct_hdr = n_datos + 6
     _banda(ws, pct_hdr, "P", "CONCILIACIÓN POR MES")
 
-    def _fila_pct(r: int, mes: str, cn, tn, pct, bg: str, fg: str,
+    def _fila_pct(r: int, mes: str, cn, tn, bg: str, fg: str,
                   bold: bool = False) -> None:
-        # La etiqueta ocupa A:B — "Septiembre" o "TOTAL SANTANDER" no caben en A.
         ws.merge_cells(f"A{r}:B{r}")
         _cell(ws, r, 1, mes, bg=bg, bold=bold, fg=fg)
         _cell(ws, r, 2, None, bg=bg)
         _cell(ws, r, 3, cn,  bg=bg, bold=bold, fg=fg, align="right")
         _cell(ws, r, 4, tn,  bg=bg, bold=bold,
               fg=fg if bold else C_INK_2, align="right")
-        _cell(ws, r, 5, pct, bg=bg, bold=True, fg=fg, align="right",
-              fmt="0.0%" if pct is not None else None)
         ws.row_dimensions[r].height = 15
 
     pr = pct_hdr + 1
-    _fila_pct(pr, "MES", "CONCILIADOS", "TOTAL", None, C_NEUTRO, C_INK_2, True)
-    _cell(ws, pr, 5, "% CONCILIADO", bg=C_NEUTRO, bold=True, fg=C_INK_2,
-          align="right", size=8)
+    _fila_pct(pr, "MES", "CONCILIADOS", "TOTAL", C_NEUTRO, C_INK_2, True)
 
-    # FÓRMULAS, no números fijos: si el usuario concilia a mano con la macro
-    # (o edita la col P), estos porcentajes se recalculan solos al instante.
     fila_ini_meses = pr + 1
     for _mnum in sorted(por_mes):
         pr += 1
-        _cn, _tn = por_mes[_mnum]
-        _pct = round(_cn / _tn * 100, 1) if _tn else 0.0
-        # Semáforo por valor calculado al exportar; el número es fórmula viva.
-        if   _pct >= 90: _bg, _fg = C_CONC,    C_CONC_INK
-        elif _pct >= 60: _bg, _fg = C_REVISAR, C_REVISAR_INK
-        else:            _bg, _fg = C_SIN,     C_SIN_INK
         _fila_pct(pr, _MESES_NOM.get(_mnum, "Sin fecha"),
                   f'=COUNTIFS({_R_MES},{_mnum},{_R_TM},"<>")',
                   f"=COUNTIFS({_R_MES},{_mnum})",
-                  f"=IF(D{pr}=0,0,C{pr}/D{pr})", C_WHITE, C_INK)
-        _cell(ws, pr, 5, f"=IF(D{pr}=0,0,C{pr}/D{pr})", bg=_bg, bold=True,
-              fg=_fg, align="right", fmt="0.0%")
+                  C_WHITE, C_INK)
     fila_fin_meses = pr
 
     pr += 1
     _fila_pct(pr, f"TOTAL {nombre}",
               f"=SUM(C{fila_ini_meses}:C{fila_fin_meses})",
               f"=SUM(D{fila_ini_meses}:D{fila_fin_meses})",
-              f"=IF(D{pr}=0,0,C{pr}/D{pr})", C_HDR_S, "FFFFFF", True)
+              C_HDR_S, "FFFFFF", True)
     ws.row_dimensions[pr].height = 17
 
     # ── Leyenda al pie, agrupada por NIVEL DE CONFIANZA ───────────────────────
@@ -732,9 +713,9 @@ def _hoja_tablero(wb, hojas: list[tuple[str, int]]) -> None:
     # ── Avance por banco ─────────────────────────────────────────────────────
     _banda(ws, 4, "F", "AVANCE POR ESTADO DE CUENTA")
     r = 5
-    for c, lbl in zip(range(1, 7),
+    for c, lbl in zip(range(1, 5),
                       ("ESTADO DE CUENTA", "MOVIMIENTOS", "CONCILIADOS",
-                       "PENDIENTES", "% CONCILIADO", "")):
+                       "PENDIENTES")):
         _cell(ws, r, c, lbl or None, bg=C_NEUTRO, bold=True, fg=C_INK_2,
               align="left" if c == 1 else "right", size=8)
 
@@ -746,13 +727,6 @@ def _hoja_tablero(wb, hojas: list[tuple[str, int]]) -> None:
         _cell(ws, r, 2, n, bg=C_WHITE, align="right", fg=C_INK_2)
         _cell(ws, r, 3, f'=COUNTIF({tm},"<>")', bg=C_WHITE, align="right")
         _cell(ws, r, 4, f"=B{r}-C{r}", bg=C_WHITE, align="right")
-        _cell(ws, r, 5, f"=IF(B{r}=0,0,C{r}/B{r})", bg=C_WHITE, align="right",
-              bold=True, fmt="0.0%")
-        # Semáforo por fórmula: se repinta el texto, no el relleno (openpyxl no
-        # hace formato condicional de color de fondo sin definir una regla).
-        _cell(ws, r, 6, f'=IF(E{r}>=0.9,"Al corriente",'
-                        f'IF(E{r}>=0.6,"Requiere atención","Atrasado"))',
-              bg=C_WHITE, fg=C_INK_2)
         ws.row_dimensions[r].height = 15
     fin = r
 
@@ -761,9 +735,6 @@ def _hoja_tablero(wb, hojas: list[tuple[str, int]]) -> None:
     for c, f in ((2, f"=SUM(B{ini}:B{fin})"), (3, f"=SUM(C{ini}:C{fin})"),
                  (4, f"=SUM(D{ini}:D{fin})")):
         _cell(ws, r, c, f, bg=C_HDR_S, bold=True, fg="FFFFFF", align="right")
-    _cell(ws, r, 5, f"=IF(B{r}=0,0,C{r}/B{r})", bg=C_HDR_S, bold=True,
-          fg="FFFFFF", align="right", fmt="0.0%")
-    _cell(ws, r, 6, None, bg=C_HDR_S)
     ws.row_dimensions[r].height = 17
     fila_total = r
 
@@ -1726,9 +1697,6 @@ def _hoja_resumen(wb,
     fila(9,  "CFDIs Recibidos sin banco",                total_r_sc,    C_PEND)
     fila(10, "CFDIs Emitidos sin banco",                 total_e_sc,    C_PEND)
     fila(11, "Monto CFDIs Recibidos sin banco ($)",      total_cfdis_r, C_PEND,    MONEY_FMT)
-    fila(12, "% Conciliado",
-         round(total_conc / total_mov * 100, 1) if total_mov else 0,
-         C_CONC, "0.0%")
 
     # ── Complementos de Pago (PPD / tipo P) ──────────────────────────────────
     todos_i   = (todos_recibidos or []) + (todos_emitidos or [])
