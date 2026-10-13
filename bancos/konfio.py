@@ -53,7 +53,7 @@ _RFC_ESPACIO_RE = re.compile(
 # ── Umbrales de columna (pt) ──────────────────────────────────────────────────
 _X_FECHA_MAX  = 115    # Fecha:        x0 < 115  (día ~54, mes ~67, año ~84)
 _X_DESC_MAX   = 310    # Descripción:  115 ≤ x0 < 310
-_X_CARD_MAX   = 365    # Tarjeta:      310 ≤ x0 < 365  (4 dígitos ~334–338)
+_X_CARD_MAX   = 350    # Tarjeta:      310 ≤ x0 < 350  (4 dígitos ~311–338, FÍSICA ~314–349)
 _X_CARGO_MAX  = 510    # Cargo M.N.:   365 ≤ x0 < 510  (montos ~384–392)
 _X_ABONO_MIN  = 510    # Abono M.N.:   x0 ≥ 510        (montos ~526+)
 

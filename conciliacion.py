@@ -30,6 +30,8 @@ Salida:
 from __future__ import annotations
 
 import itertools
+import json
+import os
 import re
 import unicodedata
 from collections import Counter
@@ -494,13 +496,126 @@ _BANCO_EMISOR_KW = (
 # que fallan con la forma espaciada 'I V A').
 _IVA_SUELTA_RE = re.compile(r"(?<![A-Z])I\.?\s*V\.?\s*A(?![A-Z])")
 
+# ── Keywords editables por el usuario (todas las categorías) ─────────────────
+_RUTA_KW_USUARIO = os.path.join(
+    os.environ.get("PROGRAMDATA", r"C:\ProgramData"),
+    "ConvertidorBancos", "keywords_usuario.json",
+)
+_KW_CACHE: dict[str, list[str]] | None = None
+
+CATEGORIAS_KW: dict[str, str] = {
+    "comisiones": "Comisiones bancarias — palabras en la descripcion del movimiento "
+                  "que identifican cargos del banco (ej. CUOTA MANEJO, ANUALIDAD)",
+    "depositos":  "Depositos / Abonos — palabras que clasifican un movimiento como "
+                  "deposito (ej. BONIFICACION, DEVOLUCION SEGURO)",
+    "retiros":    "Retiros / Cargos — palabras que clasifican un movimiento como "
+                  "retiro (ej. CARGO DOMICILIACION, PAGO SERVICIO)",
+}
+
+
+def _cargar_kw_todas() -> dict[str, list[str]]:
+    global _KW_CACHE
+    if _KW_CACHE is not None:
+        return _KW_CACHE
+    try:
+        with open(_RUTA_KW_USUARIO, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        _KW_CACHE = {
+            cat: [kw.upper().replace(" ", "") for kw in lst if kw.strip()]
+            for cat, lst in raw.items() if isinstance(lst, list)
+        }
+    except Exception:
+        _KW_CACHE = {}
+    return _KW_CACHE
+
+
+def cargar_kw_usuario(categoria: str) -> list[str]:
+    return _cargar_kw_todas().get(categoria, [])
+
+
+def cargar_kw_usuario_raw(categoria: str) -> list[str]:
+    try:
+        with open(_RUTA_KW_USUARIO, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        return [kw for kw in raw.get(categoria, []) if kw.strip()]
+    except Exception:
+        return []
+
+
+def guardar_kw_usuario(categoria: str, keywords: list[str]) -> None:
+    os.makedirs(os.path.dirname(_RUTA_KW_USUARIO), exist_ok=True)
+    try:
+        with open(_RUTA_KW_USUARIO, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        data = {}
+    data[categoria] = [kw.strip() for kw in keywords if kw.strip()]
+    with open(_RUTA_KW_USUARIO, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    invalidar_kw_usuario()
+
+
+def cargar_emisores_banco_usuario() -> list[dict]:
+    """Lee la lista de emisores bancarios custom [{nombre, rfc}, ...]."""
+    try:
+        with open(_RUTA_KW_USUARIO, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        return [e for e in raw.get("emisores_banco", [])
+                if isinstance(e, dict) and (e.get("nombre") or e.get("rfc"))]
+    except Exception:
+        return []
+
+
+def guardar_emisores_banco_usuario(emisores: list[dict]) -> None:
+    """Guarda la lista de emisores bancarios [{nombre, rfc}, ...]."""
+    os.makedirs(os.path.dirname(_RUTA_KW_USUARIO), exist_ok=True)
+    try:
+        with open(_RUTA_KW_USUARIO, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except Exception:
+        data = {}
+    data["emisores_banco"] = [
+        {"nombre": e.get("nombre", "").strip(), "rfc": e.get("rfc", "").strip()}
+        for e in emisores if e.get("nombre", "").strip() or e.get("rfc", "").strip()
+    ]
+    with open(_RUTA_KW_USUARIO, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    invalidar_kw_usuario()
+
+
+_EMISORES_BANCO_CACHE: list[dict] | None = None
+
+
+def _cargar_emisores_banco() -> list[dict]:
+    global _EMISORES_BANCO_CACHE
+    if _EMISORES_BANCO_CACHE is not None:
+        return _EMISORES_BANCO_CACHE
+    _EMISORES_BANCO_CACHE = cargar_emisores_banco_usuario()
+    return _EMISORES_BANCO_CACHE
+
+
+def invalidar_kw_usuario() -> None:
+    global _KW_CACHE, _EMISORES_BANCO_CACHE
+    _KW_CACHE = None
+    _EMISORES_BANCO_CACHE = None
+
 
 def _es_emisor_banco(cfdi: "CFDI") -> bool:
     """True si el CFDI lo emitió una institución financiera. Sirve para cruzar
     las comisiones bancarias (cuyo movimiento no nombra al banco) contra la
     factura del banco por identidad del EMISOR, no de la descripción."""
     ne = _sin_acentos((cfdi.nombre_emisor or "").upper())
-    return any(kw in ne for kw in _BANCO_EMISOR_KW)
+    if any(kw in ne for kw in _BANCO_EMISOR_KW):
+        return True
+    rfc_e = (cfdi.rfc_emisor if hasattr(cfdi, "rfc_emisor") else "") or ""
+    rfc_e = rfc_e.upper().strip()
+    for em in _cargar_emisores_banco():
+        if em.get("rfc") and rfc_e and em["rfc"].upper().strip() == rfc_e:
+            return True
+        if em.get("nombre"):
+            if em["nombre"].upper() in ne:
+                return True
+    return False
 
 
 def _es_mov_comision(mov: "MovBanco") -> bool:
@@ -512,18 +627,15 @@ def _es_mov_comision(mov: "MovBanco") -> bool:
     ns = up.replace(" ", "")
     if "COMISION" in ns:
         return True
-    # Cuota SPEI de Banorte: la comisión de envío NO dice "COMISION"; viene como
-    # "TRANSFERENCIA - ENVIO" (el pago real es "ORDEN DE PAGO SPEI"/"TRASPASO").
     if "TRANSFERENCIA-ENVIO" in ns:
         return True
-    # Campo informativo 'IVA:0.00' que Banorte mete en CADA traspaso/SPEI — NO es
-    # una comisión. Debe excluirse ANTES de la detección de 'IVA' suelta.
     if "IVA:" in ns:
         return False
-    # 'IVA' como línea real (I.V.A. ORDEN DE PAGO, IVA COMISION…): palabra suelta,
-    # no dentro de PRIVADA/ACTIVA/DERIVADO; acepta I.V.A / I V A del OCR.
     if _IVA_SUELTA_RE.search(up):
         return True
+    for kw in cargar_kw_usuario("comisiones"):
+        if kw in ns:
+            return True
     return False
 
 

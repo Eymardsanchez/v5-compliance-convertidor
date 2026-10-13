@@ -262,7 +262,18 @@ class BancoEstandar(BancoExtractor):
         col = self._clasificar_columna(fecha, monto)
         if col is not None:
             return col
-        return self._clasificar_keywords(desc)
+        kw = self._clasificar_keywords(desc)
+        if kw != "retiro":
+            return kw
+        from conciliacion import cargar_kw_usuario
+        upper = desc.upper().replace(" ", "")
+        for d in cargar_kw_usuario("depositos"):
+            if d in upper:
+                return "deposito"
+        for r in cargar_kw_usuario("retiros"):
+            if r in upper:
+                return "retiro"
+        return kw
 
     def _clasificar_balance(self, monto: float,
                             prev: Optional[float],
