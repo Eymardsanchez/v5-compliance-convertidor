@@ -135,18 +135,36 @@ def parse_antigua_iva(ruta, texto: str) -> Optional[DetalleIVA]:
         with pdfplumber.open(io.BytesIO(pdf_bytes(Path(ruta)))) as pdf:
             for pg in pdf.pages:
                 t = pg.extract_text() or ""
-                nu = _sin_acentos(t).upper()
-                # Solo la página de determinación/resultado de IVA.
-                if "VALORAGREGADO" in nu.replace(" ", "") and \
-                        ("IMPUESTOCAUSADO" in nu.replace(" ", "")
-                         or "SALDOAFAVORDELPERIODO" in nu.replace(" ", "")):
+                nuf = _sin_acentos(t).upper().replace(" ", "")
+                # Solo la página de determinación/resultado de IVA. Dos layouts:
+                #  - Régimen General clásico: 'IMPUESTO CAUSADO' / 'SALDO A FAVOR DEL PERIODO'.
+                #  - DyP 'Determinación de IVA' (p. ej. 2022): 'SALDO A FAVOR' /
+                #    'IMPUESTO A FAVOR' (sin el sufijo 'DEL PERIODO'). Se anclan esos
+                #    rótulos propios de la determinación para no incluir la página de
+                #    'Detalle del pago' (que sí trae 'A FAVOR' pero no estos).
+                if "VALORAGREGADO" in nuf and (
+                        "IMPUESTOCAUSADO" in nuf
+                        or "SALDOAFAVORDELPERIODO" in nuf
+                        or "IMPUESTOAFAVOR" in nuf
+                        or "SALDOAFAVOR" in nuf):
                     nums += _numeros_etiquetados(pg.extract_words())
     except Exception:
         return None
     if not nums:
         return None
 
-    a_favor = _valor_por_etiqueta(nums, "SALDOAFAVORDELPERIODO", excluir=("ORIGINAL",))
+    # Saldo a favor generado del periodo. Orden de preferencia por layout:
+    #  1) 'SALDO A FAVOR DEL PERIODO' (Régimen General clásico),
+    #  2) 'SALDO A FAVOR' a secas (DyP 2022) — excluye el renglón de acreditamiento
+    #     de periodos anteriores, el remanente IEPS y 'OTRAS CANTIDADES A FAVOR',
+    #  3) 'IMPUESTO A FAVOR' como respaldo (mismo valor en la determinación DyP).
+    a_favor = (
+        _valor_por_etiqueta(nums, "SALDOAFAVORDELPERIODO", excluir=("ORIGINAL",))
+        or _valor_por_etiqueta(
+            nums, "SALDOAFAVOR",
+            excluir=("ORIGINAL", "ANTERIORES", "PERIODOSANT", "IEPS", "REMANENTE", "OTRAS"))
+        or _valor_por_etiqueta(nums, "IMPUESTOAFAVOR", excluir=("OTRAS",))
+    )
     acreditamiento = _valor_por_etiqueta(nums, "DEPERIODOSANTERIORES") or 0.0
     cantidad_cargo = _valor_por_etiqueta(nums, "CANTIDADACARGO")
     impuesto_cargo = _valor_por_etiqueta(nums, "IMPUESTOACARGO",

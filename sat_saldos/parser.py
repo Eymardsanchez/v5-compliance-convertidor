@@ -96,6 +96,7 @@ RE_A_CARGO = r'(?:Impuesto a cargo|A cargo)[:\s]+\(?-?([\d,\.]+)\)?'
 RE_A_FAVOR = r'(?:Impuesto a favor|A favor)[:\s]+\(?-?([\d,\.]+)\)?'
 RE_COMP = r'Compensaciones[:\s]+\(?-?([\d,\.]+)\)?'
 RE_CANT_CARGO = r'Cantidad a cargo[:\s]+\(?-?([\d,\.]+)\)?'
+RE_CANT_FAVOR = r'Cantidad a favor[:\s]+\(?-?([\d,\.]+)\)?'
 RE_CANT_PAGAR = r'Cantidad a pagar[:\s]+\(?-?([\d,\.]+)\)?'
 
 
@@ -142,6 +143,7 @@ def _parse_conceptos_mensual(txt: str) -> list[Concepto]:
             nombre=nombre.strip(),
             a_cargo=num(_search(RE_A_CARGO, flat)),
             a_favor=num(_search(RE_A_FAVOR, flat)),
+            cantidad_favor=num(_search(RE_CANT_FAVOR, flat)),
             compensaciones=num(_search(RE_COMP, flat)),
             cantidad_cargo=num(_search(RE_CANT_CARGO, flat)),
             cantidad_pagar=num(_search(RE_CANT_PAGAR, flat)),
@@ -181,6 +183,8 @@ def _map_labels_a_concepto(nombre: str, labels: list[str], nums: list[str]) -> C
         v = num(val)
         if 'cantidad a cargo' in lo:
             c.cantidad_cargo = v
+        elif 'cantidad a favor' in lo:   # antes de 'a favor': 'cantidad a favor' lo contiene
+            c.cantidad_favor = v
         elif 'cantidad a pagar' in lo:
             c.cantidad_pagar = v
         elif 'a favor' in lo:
@@ -242,6 +246,7 @@ def _parse_conceptos_anual(txt: str, flat: str) -> list[Concepto]:
     return [Concepto(
         nombre=nombre.strip(),
         a_favor=num(_search(r'Impuesto a favor[:\s]+([\d,\.]+)', flat)),
+        cantidad_favor=num(_search(RE_CANT_FAVOR, flat)),
         cantidad_cargo=num(_search(r'Cantidad a cargo[:\s]+([\d,\.]+)', flat)),
         cantidad_pagar=num(_search(r'Cantidad a pagar[:\s]+([\d,\.]+)', flat)),
     )]

@@ -24,11 +24,24 @@ class OrigenCompensacion:
 class Concepto:
     nombre: str                         # texto tal cual del acuse
     a_cargo: Optional[float] = None
-    a_favor: Optional[float] = None
+    a_favor: Optional[float] = None          # etiqueta "A favor" / "Impuesto a favor"
+    cantidad_favor: Optional[float] = None   # etiqueta "Cantidad a favor" (neto, tras compensaciones)
     compensaciones: Optional[float] = None   # positivo = monto compensado
     cantidad_cargo: Optional[float] = None
     cantidad_pagar: Optional[float] = None
     origen: Optional[OrigenCompensacion] = None
+
+    @property
+    def saldo_favor(self) -> float:
+        """Saldo a favor efectivo del concepto.
+
+        Regla: usar 'Cantidad a favor' cuando el acuse la trae; si ese campo no
+        tiene valor, caer a 'A favor' / 'Impuesto a favor'. Algunos acuses solo
+        traen uno de los dos renglones.
+        """
+        if self.cantidad_favor is not None:
+            return self.cantidad_favor
+        return self.a_favor or 0.0
 
 
 @dataclass

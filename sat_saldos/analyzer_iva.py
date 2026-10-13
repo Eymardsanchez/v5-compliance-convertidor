@@ -41,7 +41,7 @@ def analizar_iva(vigentes: list[Declaracion]) -> AnalisisIVA:
         for c in d.conceptos:
             if clasifica_concepto(c.nombre) != 'IVA':  # excluye IVA_RET
                 continue
-            a_favor = c.a_favor or 0.0
+            a_favor = c.saldo_favor
             a_cargo = c.a_cargo or 0.0
             an.resultados.append(ResultadoIVA(
                 ejercicio=d.ejercicio,
