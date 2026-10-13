@@ -1,3 +1,8 @@
 __pycache__/
 *.pyc
 *.pyo
+build/
+dist/
+instalador_salida/
+versiones_anteriores/
+v5-compliance-convertidor/

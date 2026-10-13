@@ -1,0 +1,46 @@
+================================================================================
+CHANGELOG — ConvertidorBancos v5-compliance
+================================================================================
+Cada cambio se documenta aqui con version secuencial.
+La version actual se encuentra en VERSION.txt.
+Las versiones anteriores se respaldan en la carpeta /versiones_anteriores/
+como archivos .zip antes de aplicar cada actualizacion.
+
+================================================================================
+v5.0.0 — 2026-10-13 — Version base subida a GitHub
+================================================================================
+- Commit inicial + limpieza de directorios build/dist/instalador_salida
+- Commit ACTUALIZACION con todo el codigo fuente
+- Eliminacion de porcentaje de conciliacion del reporte Excel
+- Agregado .gitignore para excluir __pycache__
+- feat: sat_saldos lee saldo a favor de IVA del formato DyP 2022
+
+================================================================================
+v5.0.1 — 2026-10-13 — Keywords universales + Emisores bancarios tabla
+================================================================================
+Archivos modificados:
+  - conciliacion.py
+  - bancos/estandar.py
+
+Cambios:
+  1. CATEGORIAS_KW: quitada categoria "emisores_banco" (ahora es tabla aparte),
+     agregada categoria "retiros" (Retiros / Cargos).
+     Categorias finales: comisiones, depositos, retiros.
+
+  2. Sistema de emisores bancarios como tabla con nombre + RFC:
+     - Nuevas funciones: cargar_emisores_banco_usuario(),
+       guardar_emisores_banco_usuario(), _cargar_emisores_banco()
+     - Cache dedicado _EMISORES_BANCO_CACHE
+     - Almacenamiento en keywords_usuario.json bajo llave "emisores_banco"
+       como lista de objetos {nombre, rfc}
+
+  3. _es_emisor_banco(): ahora cruza por RFC ademas de nombre contra la
+     tabla de emisores del usuario.
+
+  4. invalidar_kw_usuario(): limpia ambos caches (keywords + emisores).
+
+  5. BancoEstandar._clasificar() en bancos/estandar.py: integra keywords
+     del usuario para depositos y retiros como fallback despues de las
+     keywords hardcodeadas de cada subclase bancaria.
+
+Nota: Los mismos cambios se aplicaron a v5.0-sin-descarga-sat (edicion paralela).
